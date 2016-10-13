@@ -6,11 +6,19 @@ import haxe.macro.Type.ClassType;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 
+import sys.FileSystem;
+import sys.io.File;
+import sys.io.FileOutput;
+
 class ComponentBuilder {
 	private static inline var VIEW_ANNOTATION:String = ":view";
+	private static inline var STYLE_ANNOTATION:String = ":style";
 
 	public static function build():Array<Field> {
 		var file:String;
+		var styleFile:String;
+
+		var styleResult:String = "style.css";
 
 		var classType:ClassType;
 		switch (Context.getLocalType()) {
@@ -23,6 +31,10 @@ class ComponentBuilder {
 			if(meta.name == VIEW_ANNOTATION)
 				if(meta.params.length > 0)
 					file = ExprTools.getValue(meta.params[0]);
+
+			if(meta.name == STYLE_ANNOTATION)
+				if(meta.params.length > 0)
+					styleFile = ExprTools.getValue(meta.params[0]);
 		}
 
 		var superClass:String;
@@ -122,7 +134,33 @@ class ComponentBuilder {
 					},
 					ret : macro : Void
 				}), pos: Context.currentPos()});
+
+				if(FileSystem.exists(styleResult))
+					FileSystem.deleteFile(styleResult);
 			}
+		}
+
+		if(styleFile != null){
+			var classString:String = Context.getLocalClass().toString();
+
+			var parts:Array<String> = classString.split(".");
+			parts.pop();
+			var path:String = parts.join("/");
+
+			var p = Context.resolvePath(path + "/" + styleFile);
+
+			var string:String = sys.io.File.getContent(p);
+
+			if(!FileSystem.exists(styleResult)){
+				var fileOutput:FileOutput = File.write(styleResult);
+				fileOutput.close();
+			}
+
+			var fileOutput:FileOutput = File.append(styleResult);
+			fileOutput.writeString("/* Component " + classString + " */\n");
+			fileOutput.writeString(string);
+			fileOutput.writeString("\n");
+			fileOutput.close();
 		}
 
 		return fields;
