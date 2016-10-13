@@ -150,4 +150,8 @@ class MacroUtils {
 			sub: sub
 		};
 	}
+
+	static public inline function asComplexType(s:String, ?params){
+		return TPath(asTypePath(s, params));
+	}
 }

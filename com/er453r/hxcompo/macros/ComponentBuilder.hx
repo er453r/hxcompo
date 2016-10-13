@@ -38,32 +38,6 @@ class ComponentBuilder {
 
 		var fields:Array<Field> = Context.getBuildFields();
 
-		if(MacroUtils.getField(NEW, fields) == null){ // if there is no constructor, create an empty one
-			fields.push({
-				name: NEW,
-				doc: null,
-				access: [Access.APublic],
-				kind: FieldType.FFun({
-					params : [],
-					args : [],
-					expr: macro {},
-					ret : macro : Void
-				}),
-				pos: Context.currentPos()});
-		}
-
-		// inject initialization code to the constructor
-		switch(MacroUtils.getField(NEW, fields).kind){
-			case FFun(func):{
-				func.expr = macro {
-					buildFromString(this.contents);
-					${func.expr};
-				};
-			}
-
-			default: {}
-		}
-
 		// create a variable for html contents
 		fields.push({
 			name: CONTENTS,
@@ -113,17 +87,48 @@ class ComponentBuilder {
 
 		// create fields for elements with ids
 		var ids:Array<String> = MacroUtils.findIdTags(viewFile);
+		var exprs:Array<Expr> = [];
 
 		for(id in ids){
-			var type = MacroUtils.asTypePath("js.html.Element");
+			var type = MacroUtils.asComplexType("js.html.Element");
 
 			fields.push({
 				name: id,
 				doc: null,
 				access: [Access.APrivate],
-				kind: FieldType.FVar(macro:$type),
+				kind: FieldType.FVar(macro:$type, macro $v{null}),
 				pos: Context.currentPos()
 			});
+
+			exprs.push(macro this.$id = find('#${id}'));
+		}
+
+		// if there is no constructor, create an empty one
+		if(MacroUtils.getField(NEW, fields) == null){
+			fields.push({
+				name: NEW,
+				doc: null,
+				access: [Access.APublic],
+				kind: FieldType.FFun({
+					params : [],
+					args : [],
+					expr: macro {},
+					ret : macro : Void
+				}),
+				pos: Context.currentPos()});
+		}
+
+		// inject initialization code to the constructor
+		switch(MacroUtils.getField(NEW, fields).kind){
+			case FFun(func):{
+				func.expr = macro {
+					buildFromString(this.contents);
+					$b{exprs};
+					${func.expr};
+				};
+			}
+
+			default: {}
 		}
 
 		return fields;
