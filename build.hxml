@@ -1,8 +1,0 @@
-#!/usr/bin/haxe
--cp src
--main com.er453r.components.TestContainer
--js dom-test.js
-#-dce full
-#-debug
-#-D js-es5
-#-D js-flatten
