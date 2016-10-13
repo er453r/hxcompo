@@ -103,7 +103,11 @@ class ComponentBuilder {
 				pos: Context.currentPos()
 			});
 
-			exprs.push(macro this.$id = cast find('#${id}'));
+			// if not root, then lookm if root assing view
+			if(node.parent.parent != null)
+				exprs.push(macro this.$id = cast find('#${id}'));
+			else
+				exprs.push(macro this.$id = cast this.view);
 		}
 
 		// if there is no constructor, create an empty one
