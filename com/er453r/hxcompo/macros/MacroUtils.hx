@@ -66,6 +66,28 @@ class MacroUtils {
 		return html;
 	}
 
+	static public function findIdTags(fileName:String):Array<String>{
+		var html:String = getFileContent(fileName);
+
+		var xml:Xml = Xml.parse(html);
+
+		return findIdTagsInNode(xml.firstChild());
+	}
+
+	static private function findIdTagsInNode(node:Xml):Array<String>{
+		var ids:Array<String> = [];
+
+		if(node.exists("id"))
+			ids.push(node.get("id"));
+
+		var iterator:Iterator<Xml> = node.elements();
+
+		while(iterator.hasNext())
+			ids = ids.concat(findIdTagsInNode(iterator.next()));
+
+		return ids;
+	}
+
 	static public function getContextPath(fileName:String):String {
 		var classString:String = Context.getLocalClass().toString();
 

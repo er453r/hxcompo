@@ -93,7 +93,6 @@ class ComponentBuilder {
 				}),
 				pos: Context.currentPos()});
 
-
 			if(styleResult != null && FileSystem.exists(styleResult))
 				FileSystem.deleteFile(styleResult);
 		}
@@ -110,6 +109,21 @@ class ComponentBuilder {
 			fileOutput.writeString(cssContent);
 			fileOutput.writeString("\n");
 			fileOutput.close();
+		}
+
+		// create fields for elements with ids
+		var ids:Array<String> = MacroUtils.findIdTags(viewFile);
+
+		for(id in ids){
+			var type = MacroUtils.asTypePath("js.html.Element");
+
+			fields.push({
+				name: id,
+				doc: null,
+				access: [Access.APrivate],
+				kind: FieldType.FVar(macro:$type),
+				pos: Context.currentPos()
+			});
 		}
 
 		return fields;
