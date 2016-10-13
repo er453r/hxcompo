@@ -12,6 +12,7 @@ class ComponentBuilder {
 	private static inline var CONTENTS:String = "contents";
 	private static inline var NEW:String = "new";
 	private static inline var MAIN:String = "main";
+	private static inline var CSS_FILE:String = "css";
 
 	private static inline var VIEW_ANNOTATION:String = ":view";
 	private static inline var STYLE_ANNOTATION:String = ":style";
@@ -21,8 +22,7 @@ class ComponentBuilder {
 		var simpleName:String = MacroUtils.getClassName();
 		var viewFile:String = MacroUtils.getMeta(VIEW_ANNOTATION);
 		var styleFile:String = MacroUtils.getMeta(STYLE_ANNOTATION);
-
-		var styleResult:String = "style.css";
+		var styleResult:String = "" + Context.getDefines().get(CSS_FILE);
 
 		// set defaukt names
 		if(viewFile == null)
@@ -93,12 +93,13 @@ class ComponentBuilder {
 				}),
 				pos: Context.currentPos()});
 
-			if(FileSystem.exists(styleResult))
+
+			if(styleResult != null && FileSystem.exists(styleResult))
 				FileSystem.deleteFile(styleResult);
 		}
 
 		// if component has css, add it to result file
-		if(MacroUtils.contextFileExists(styleFile)){
+		if(styleResult != null && MacroUtils.contextFileExists(styleFile)){
 			var cssContent:String = MacroUtils.getFileContent(styleFile);
 
 			if(!FileSystem.exists(styleResult)) // create file if it does not exist
