@@ -15,66 +15,16 @@ class ComponentBuilder {
 	private static inline var STYLE_ANNOTATION:String = ":style";
 
 	public static function build():Array<Field> {
-		var file:String;
-		var styleFile:String;
+		var className:String = TypeTools.toString(Context.getLocalType());
+		var viewFile:String = getMeta(VIEW_ANNOTATION);
+		var styleFile:String = getMeta(STYLE_ANNOTATION);
 
 		var styleResult:String = "style.css";
 
-		var classType:ClassType;
-		switch (Context.getLocalType()) {
-			case TInst(r, _):
-				classType = r.get();
-			case _:
-		}
+		if(viewFile == null)
+			Context.error('Class ${className} does not define its view', Context.currentPos());
 
-		for (meta in classType.meta.get()){
-			if(meta.name == VIEW_ANNOTATION)
-				if(meta.params.length > 0)
-					file = ExprTools.getValue(meta.params[0]);
-
-			if(meta.name == STYLE_ANNOTATION)
-				if(meta.params.length > 0)
-					styleFile = ExprTools.getValue(meta.params[0]);
-		}
-
-		var superClass:String;
-
-		if(classType.superClass != null)
-			superClass = classType.superClass.t.toString();
-
-		if(superClass != Type.getClassName(Component))
-			Context.error('Class has to extend ${Type.getClassName(Component)}', Context.currentPos());
-
-		var classString:String = Context.getLocalClass().toString();
-
-		var parts:Array<String> = classString.split(".");
-		parts.pop();
-		var path:String = parts.join("/");
-
-		var p = Context.resolvePath(path + "/" + file);
-
-		var string:String = sys.io.File.getContent(p);
-
-		var xml:Xml;
-
-		try{
-			xml = Xml.parse(string);
-
-			var childrenCount:UInt = 0;
-
-			var iterator:Iterator<Xml> = xml.elements();
-
-			while(iterator.hasNext()){
-				childrenCount++;
-				iterator.next();
-			}
-
-			if(childrenCount != 1)
-				Context.error('View File ${p} has to contain exactly 1 root node', Context.currentPos());
-		}
-		catch(err:String){
-			Context.error('Error parsing file ${p}: ${err}', Context.currentPos());
-		}
+		var viewContent:String = parseHTML(viewFile);
 
 		var fields:Array<Field> = Context.getBuildFields();
 
@@ -112,7 +62,7 @@ class ComponentBuilder {
 			}
 		}
 
-		fields.push({name: 'contents', doc: null, access: [Access.APrivate], kind: FieldType.FVar(macro:String, macro $v{string}), pos: Context.currentPos()});
+		fields.push({name: 'contents', doc: null, access: [Access.APrivate], kind: FieldType.FVar(macro:String, macro $v{viewContent}), pos: Context.currentPos()});
 
 		var args:Array<String> = Sys.args();
 
@@ -164,6 +114,64 @@ class ComponentBuilder {
 		}
 
 		return fields;
+	}
+
+	static public function parseHTML(fileName:String):String{
+		var html:String = getFileContent(fileName);
+
+		var xml:Xml;
+
+		try{
+			xml = Xml.parse(html);
+
+			var childrenCount:UInt = 0;
+
+			var iterator:Iterator<Xml> = xml.elements();
+
+			while(iterator.hasNext()){
+				childrenCount++;
+				iterator.next();
+			}
+
+			if(childrenCount != 1)
+				Context.error('View File ${fileName} has to contain exactly 1 root node', Context.currentPos());
+		}
+		catch(err:String){
+			Context.error('Error parsing file ${fileName}: ${err}', Context.currentPos());
+		}
+
+		return html;
+	}
+
+	static public function getFileContent(fileName:String):String {
+		var classString:String = Context.getLocalClass().toString();
+
+		var parts:Array<String> = classString.split(".");
+		parts.pop();
+		var path:String = parts.join("/");
+
+		var p = Context.resolvePath(path + "/" + fileName);
+
+		return sys.io.File.getContent(p);
+	}
+
+	static public function getMeta(name:String):String {
+		var classType:ClassType;
+
+		switch (Context.getLocalType()) {
+			case TInst(r, _):
+				classType = r.get();
+			case _:
+		}
+
+		var value:String;
+
+		for (meta in classType.meta.get())
+			if(meta.name == name)
+				if(meta.params.length > 0)
+					value = ExprTools.getValue(meta.params[0]);
+
+		return value;
 	}
 
 	static public function asTypePath(s:String, ?params):TypePath {
