@@ -5,7 +5,7 @@ import js.html.Element;
 import js.Browser;
 #end
 
-@:autoBuild(com.er453r.hxcompo.ComponentBuilder.build())
+@:autoBuild(com.er453r.hxcompo.macros.ComponentBuilder.build())
 class Component {
 	private static inline var CONTENT_SELECTOR:String = ".content";
 #if js
