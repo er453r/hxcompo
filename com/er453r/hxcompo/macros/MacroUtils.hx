@@ -66,7 +66,7 @@ class MacroUtils {
 		return html;
 	}
 
-	static public function findIdTags(fileName:String):Array<String>{
+	static public function findIdNodes(fileName:String):Array<Xml>{
 		var html:String = getFileContent(fileName);
 
 		var xml:Xml = Xml.parse(html);
@@ -74,11 +74,11 @@ class MacroUtils {
 		return findIdTagsInNode(xml.firstChild());
 	}
 
-	static private function findIdTagsInNode(node:Xml):Array<String>{
-		var ids:Array<String> = [];
+	static private function findIdTagsInNode(node:Xml):Array<Xml>{
+		var ids:Array<Xml> = [];
 
 		if(node.exists("id"))
-			ids.push(node.get("id"));
+			ids.push(node);
 
 		var iterator:Iterator<Xml> = node.elements();
 
@@ -153,5 +153,29 @@ class MacroUtils {
 
 	static public inline function asComplexType(s:String, ?params){
 		return TPath(asTypePath(s, params));
+	}
+
+	static public inline function tagNameToClassName(tag:String){
+		tag = tag.substring(0, 1).toUpperCase() + tag.substring(1).toLowerCase();
+
+		var className:String = 'js.html.${tag}Element';
+
+		if(!classExists(className))
+			className = 'js.html.Element';
+
+		return className;
+	}
+
+	static public inline function classExists(className:String):Bool{
+		var exists:Bool = false;
+
+		try{
+			Context.getType(className);
+
+			exists = true;
+		}
+		catch(err:String){}
+
+		return exists;
 	}
 }

@@ -86,11 +86,14 @@ class ComponentBuilder {
 		}
 
 		// create fields for elements with ids
-		var ids:Array<String> = MacroUtils.findIdTags(viewFile);
+		var nodes:Array<Xml> = MacroUtils.findIdNodes(viewFile);
 		var exprs:Array<Expr> = [];
 
-		for(id in ids){
-			var type = MacroUtils.asComplexType("js.html.Element");
+		for(node in nodes){
+			var id:String = node.get("id");
+			var tagName:String = node.nodeName;
+
+			var type = MacroUtils.asComplexType(MacroUtils.tagNameToClassName(tagName));
 
 			fields.push({
 				name: id,
@@ -100,7 +103,7 @@ class ComponentBuilder {
 				pos: Context.currentPos()
 			});
 
-			exprs.push(macro this.$id = find('#${id}'));
+			exprs.push(macro this.$id = cast find('#${id}'));
 		}
 
 		// if there is no constructor, create an empty one
