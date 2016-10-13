@@ -11,6 +11,10 @@ import sys.io.File;
 import sys.io.FileOutput;
 
 class ComponentBuilder {
+	private static inline var CONTENTS:String = "contents";
+	private static inline var NEW:String = "new";
+	private static inline var MAIN:String = "main";
+
 	private static inline var VIEW_ANNOTATION:String = ":view";
 	private static inline var STYLE_ANNOTATION:String = ":style";
 
@@ -28,92 +32,107 @@ class ComponentBuilder {
 
 		var fields:Array<Field> = Context.getBuildFields();
 
-		var hasConstructor:Bool = false;
+		if(getField(NEW, fields) == null){ // if there is no constructor, create an empty one
+			fields.push({
+				name: NEW,
+				doc: null,
+				access: [Access.APublic],
+				kind: FieldType.FFun({
+					params : [],
+					args : [],
+					expr: macro {},
+					ret : macro : Void
+				}),
+				pos: Context.currentPos()});
+		}
 
-		for(field in fields){
-			if(field.name == "new"){
-				hasConstructor = true;
-
-				break;
+		// inject initialization code to the constructor
+		switch(getField(NEW, fields).kind){
+			case FFun(func):{
+				func.expr = macro {
+					buildFromString(this.contents);
+					${func.expr};
+				};
 			}
+
+			default: {}
 		}
 
-		if(!hasConstructor){
-			fields.push({name: 'new', doc: null, access: [Access.APublic], kind: FieldType.FFun({
-				params : [],
-				args : [],
-				expr: macro {},
-				ret : macro : Void
-			}), pos: Context.currentPos()});
-		}
+		// create a variable for html contents
+		fields.push({
+			name: CONTENTS,
+			doc: null,
+			access: [Access.APrivate],
+			kind: FieldType.FVar(macro:String, macro $v{viewContent}),
+			pos: Context.currentPos()
+		});
 
-		for(field in fields){
-			if(field.name == "new"){
-				switch(field.kind){
-					case FFun(func):{
-						func.expr = macro {
-							buildFromString(this.contents);
-							${func.expr};
-						};
-					}
+		// check if main class requires a a static main
+		if(TypeTools.toString(Context.getLocalType()) == getMainClassName()){
+			var type = asTypePath(getMainClassName());
 
-					default: {}
-				}
-			}
-		}
-
-		fields.push({name: 'contents', doc: null, access: [Access.APrivate], kind: FieldType.FVar(macro:String, macro $v{viewContent}), pos: Context.currentPos()});
-
-		var args:Array<String> = Sys.args();
-
-		var mainIndex:Int = args.indexOf('-main');
-
-		if(mainIndex != -1){
-			var mainClass:String = args[mainIndex + 1];
-
-			var type = asTypePath(mainClass);
-
-			if(TypeTools.toString(Context.getLocalType()) == mainClass){
-				fields.push({name: 'main', doc: null, access: [Access.APublic, Access.AStatic], kind: FieldType.FFun({
+			fields.push({
+				name: MAIN,
+				doc: null,
+				access: [Access.APublic, Access.AStatic],
+				kind: FieldType.FFun({
 					params : [],
 					args : [],
 					expr: macro {
 						js.Browser.document.addEventListener("DOMContentLoaded", function(event){
-						js.Browser.document.body.appendChild(new $type().view);
-					});
+							js.Browser.document.body.appendChild(new $type().view);
+						});
 					},
 					ret : macro : Void
-				}), pos: Context.currentPos()});
+				}),
+				pos: Context.currentPos()});
 
-				if(FileSystem.exists(styleResult))
-					FileSystem.deleteFile(styleResult);
-			}
+			if(FileSystem.exists(styleResult))
+				FileSystem.deleteFile(styleResult);
 		}
 
+		// if component has css, add it to result file
 		if(styleFile != null){
-			var classString:String = Context.getLocalClass().toString();
+			var cssContent:String = getFileContent(styleFile);
 
-			var parts:Array<String> = classString.split(".");
-			parts.pop();
-			var path:String = parts.join("/");
-
-			var p = Context.resolvePath(path + "/" + styleFile);
-
-			var string:String = sys.io.File.getContent(p);
-
-			if(!FileSystem.exists(styleResult)){
-				var fileOutput:FileOutput = File.write(styleResult);
-				fileOutput.close();
-			}
-
+			if(!FileSystem.exists(styleResult)) // create file if it does not exist
+				File.write(styleResult).close();
+			
 			var fileOutput:FileOutput = File.append(styleResult);
-			fileOutput.writeString("/* Component " + classString + " */\n");
-			fileOutput.writeString(string);
+			fileOutput.writeString("/* Component " + className + " */\n");
+			fileOutput.writeString(cssContent);
 			fileOutput.writeString("\n");
 			fileOutput.close();
 		}
 
 		return fields;
+	}
+
+	static public function getMainClassName():String{
+		var mainClass:String;
+
+		var args:Array<String> = Sys.args();
+
+		var mainIndex:Int = args.indexOf('-main');
+
+		if(mainIndex != -1)
+			mainClass = args[mainIndex + 1];
+
+		return mainClass;
+	}
+
+	static public function getField(fieldName:String, fields:Array<Field>):Field{
+		var found:Field = null;
+
+		for(field in fields){
+			if(field.name == fieldName){
+				found = field;
+
+				break;
+			}
+		}
+
+		return found;
 	}
 
 	static public function parseHTML(fileName:String):String{
