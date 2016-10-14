@@ -11,6 +11,7 @@ import sys.io.FileOutput;
 class ComponentBuilder {
 	private static inline var CONTENTS:String = "contents";
 	private static inline var ID_ATTR:String = "data-id";
+	private static inline var TEMPLATE_ATTR:String = "data-template";
 	private static inline var NEW:String = "new";
 	private static inline var MAIN:String = "main";
 	private static inline var CSS_FILE:String = "css";
@@ -38,15 +39,6 @@ class ComponentBuilder {
 		var viewHtml:Xml = MacroUtils.parseHTML(viewFile);
 
 		var fields:Array<Field> = Context.getBuildFields();
-
-		// create a variable for html contents
-		fields.push({
-			name: CONTENTS,
-			doc: null,
-			access: [Access.APrivate],
-			kind: FieldType.FVar(macro:String, macro $v{viewHtml.toString()}),
-			pos: Context.currentPos()
-		});
 
 		// check if main class requires a a static main
 		if(TypeTools.toString(Context.getLocalType()) == MacroUtils.getMainClassName()){
@@ -111,6 +103,24 @@ class ComponentBuilder {
 				exprs.push(macro this.$id = cast this.view);
 		}
 
+		// create templates for elements with templates
+		var nodes:Array<Xml> = MacroUtils.findNodesWithAttr(viewHtml, TEMPLATE_ATTR);
+
+		for(node in nodes){
+			if(MacroUtils.nodeChildren(node).length != 1)
+				Context.error('Node ${node.nodeName} with template has to contain only 1 comment block', Context.currentPos());
+
+			var comment:Xml = MacroUtils.nodeChildren(node).pop();
+
+			if(comment.nodeType != Xml.Comment)
+				Context.error('Node ${node.nodeName} with template has to contain only 1 comment block', Context.currentPos());
+
+			var variable:String = node.get(TEMPLATE_ATTR);
+			var template:String = comment.nodeValue;
+
+			node.removeChild(comment);
+		}
+
 		// if there is no constructor, create an empty one
 		if(MacroUtils.getField(NEW, fields) == null){
 			fields.push({
@@ -138,6 +148,15 @@ class ComponentBuilder {
 
 			default: {}
 		}
+
+		// create a variable for html contents
+		fields.push({
+			name: CONTENTS,
+			doc: null,
+			access: [Access.APrivate],
+			kind: FieldType.FVar(macro:String, macro $v{viewHtml.toString()}),
+			pos: Context.currentPos()
+		});
 
 		return fields;
 	}

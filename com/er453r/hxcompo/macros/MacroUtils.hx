@@ -47,16 +47,7 @@ class MacroUtils {
 		try{
 			xml = Xml.parse(html);
 
-			var childrenCount:UInt = 0;
-
-			var iterator:Iterator<Xml> = xml.elements();
-
-			while(iterator.hasNext()){
-				childrenCount++;
-				iterator.next();
-			}
-
-			if(childrenCount != 1)
+			if(nodeChildren(xml).length != 1)
 				Context.error('View File ${fileName} has to contain exactly 1 root node', Context.currentPos());
 		}
 		catch(err:String){
@@ -64,6 +55,27 @@ class MacroUtils {
 		}
 
 		return xml.firstChild();
+	}
+
+	static public function nodeChildren(node:Xml):Array<Xml>{
+		var children:Array<Xml> = [];
+
+		var iterator:Iterator<Xml> = node.iterator();
+
+		var emptyRegEx:EReg = ~/^\s*$/;
+
+		while(iterator.hasNext()){
+			var child:Xml = iterator.next();
+
+			var string:String = child.toString();
+
+			if(emptyRegEx.match(string))
+				continue;
+
+			children.push(child);
+		}
+
+		return children;
 	}
 
 	static public function findNodesWithAttr(node:Xml, attr:String):Array<Xml>{
