@@ -7,7 +7,7 @@ import js.Browser;
 
 @:autoBuild(com.er453r.hxcompo.macros.ComponentBuilder.build())
 class Component {
-	private static inline var CONTENT_SELECTOR:String = ".content";
+	private static inline var CONTENT_SELECTOR:String = "*[data-content]";
 #if js
 	public var view(default, null):Element;
 

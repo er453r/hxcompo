@@ -156,6 +156,11 @@ class MacroUtils {
 	}
 
 	static public inline function tagNameToClassName(tag:String){
+		var tagMap:Map<String, String> = ["img" => "image"];
+
+		if(tagMap.exists(tag))
+			tag = tagMap.get(tag);
+
 		tag = tag.substring(0, 1).toUpperCase() + tag.substring(1).toLowerCase();
 
 		var className:String = 'js.html.${tag}Element';
