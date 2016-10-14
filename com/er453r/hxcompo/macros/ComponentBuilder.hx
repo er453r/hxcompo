@@ -10,6 +10,7 @@ import sys.io.FileOutput;
 
 class ComponentBuilder {
 	private static inline var CONTENTS:String = "contents";
+	private static inline var ID_ATTR:String = "data-id";
 	private static inline var NEW:String = "new";
 	private static inline var MAIN:String = "main";
 	private static inline var CSS_FILE:String = "css";
@@ -34,7 +35,7 @@ class ComponentBuilder {
 		if(!MacroUtils.contextFileExists(viewFile))
 			Context.error('Class ${simpleName} does not define its view (or the default one "${simpleName}.htm")', Context.currentPos());
 
-		var viewContent:String = MacroUtils.parseHTML(viewFile);
+		var viewHtml:Xml = MacroUtils.parseHTML(viewFile);
 
 		var fields:Array<Field> = Context.getBuildFields();
 
@@ -43,7 +44,7 @@ class ComponentBuilder {
 			name: CONTENTS,
 			doc: null,
 			access: [Access.APrivate],
-			kind: FieldType.FVar(macro:String, macro $v{viewContent}),
+			kind: FieldType.FVar(macro:String, macro $v{viewHtml.toString()}),
 			pos: Context.currentPos()
 		});
 
@@ -86,11 +87,11 @@ class ComponentBuilder {
 		}
 
 		// create fields for elements with ids
-		var nodes:Array<Xml> = MacroUtils.findIdNodes(viewFile);
+		var nodes:Array<Xml> = MacroUtils.findNodesWithAttr(viewHtml, ID_ATTR);
 		var exprs:Array<Expr> = [];
 
 		for(node in nodes){
-			var id:String = node.get("id");
+			var id:String = node.get(ID_ATTR);
 			var tagName:String = node.nodeName;
 
 			var type = MacroUtils.asComplexType(MacroUtils.tagNameToClassName(tagName));
@@ -105,7 +106,7 @@ class ComponentBuilder {
 
 			// if not root, then lookm if root assing view
 			if(node.parent.parent != null)
-				exprs.push(macro this.$id = cast find('#${id}'));
+				exprs.push(macro this.$id = cast find('*[${ID_ATTR}=${id}]'));
 			else
 				exprs.push(macro this.$id = cast this.view);
 		}

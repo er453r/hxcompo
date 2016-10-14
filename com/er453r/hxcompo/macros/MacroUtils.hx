@@ -39,7 +39,7 @@ class MacroUtils {
 		return found;
 	}
 
-	static public function parseHTML(fileName:String):String{
+	static public function parseHTML(fileName:String):Xml{
 		var html:String = getFileContent(fileName);
 
 		var xml:Xml;
@@ -63,27 +63,19 @@ class MacroUtils {
 			Context.error('Error parsing file ${fileName}: ${err}', Context.currentPos());
 		}
 
-		return html;
+		return xml.firstChild();
 	}
 
-	static public function findIdNodes(fileName:String):Array<Xml>{
-		var html:String = getFileContent(fileName);
-
-		var xml:Xml = Xml.parse(html);
-
-		return findIdTagsInNode(xml.firstChild());
-	}
-
-	static private function findIdTagsInNode(node:Xml):Array<Xml>{
+	static public function findNodesWithAttr(node:Xml, attr:String):Array<Xml>{
 		var ids:Array<Xml> = [];
 
-		if(node.exists("id"))
+		if(node.exists(attr))
 			ids.push(node);
 
 		var iterator:Iterator<Xml> = node.elements();
 
 		while(iterator.hasNext())
-			ids = ids.concat(findIdTagsInNode(iterator.next()));
+			ids = ids.concat(findNodesWithAttr(iterator.next(), attr));
 
 		return ids;
 	}
