@@ -140,8 +140,43 @@ class ComponentBuilder {
 			if(MacroUtils.getField(variable, fields) == null)
 				Context.error('Class ${className} does not contain variable "${variable}" required for a template', Context.currentPos());
 
-			if(MacroUtils.getField(SETTER_PREFIX + variable, fields) == null)
-				Context.error('Class ${className} does not contain setter for variable "${variable}" required for a template', Context.currentPos());
+			if(MacroUtils.getField(SETTER_PREFIX + variable, fields) == null){
+				// inject setter
+				fields.push({
+					name: SETTER_PREFIX + variable,
+					kind: FieldType.FFun({
+						args: [{ name:'value', type:null}],
+						expr: macro return $i{variable} = value,
+						ret: null
+					}),
+					pos: Context.currentPos()
+				});
+
+				// enable setter
+				var field:Field = MacroUtils.getField(variable, fields);
+
+				switch(field.kind){
+					case FVar(t, e):{
+						field.kind = FieldType.FProp("null", "set", t);
+					}
+
+					// if only getter exists
+					case FProp(get, set, t, e):{
+						field.kind = FieldType.FProp(get, "set", t, e);
+
+						if (field.meta == null)
+							field.meta = [];
+
+						field.meta.push({
+							name: ":isVar",
+							pos: field.pos,
+							params: []
+						});
+					}
+
+					default: {}
+				}
+			}
 
 			// inject code to setter
 			switch(MacroUtils.getField(SETTER_PREFIX + variable, fields).kind){
