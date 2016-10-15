@@ -13,7 +13,7 @@ class ComponentBuilder {
 	private static inline var ID_ATTR:String = "data-id";
 	private static inline var TEMPLATE_ATTR:String = "data-template";
 	private static inline var TEMPLATE_ID_ATTR:String = "data-template-id";
-	private static inline var TEMPLATE_VARIABLE:String = "componentTemplate";
+	private static inline var TEMPLATE_VARIABLE:String = "component-template-";
 	private static inline var SETTER_PREFIX:String = "set_";
 	private static inline var NEW:String = "new";
 	private static inline var MAIN:String = "main";
@@ -21,6 +21,8 @@ class ComponentBuilder {
 
 	private static inline var VIEW_ANNOTATION:String = ":view";
 	private static inline var STYLE_ANNOTATION:String = ":style";
+
+	private static var globalTemplateCounter:UInt = 0;
 
 	public static function build():Array<Field> {
 		var className:String = TypeTools.toString(Context.getLocalType());
@@ -108,7 +110,6 @@ class ComponentBuilder {
 
 		// create templates for elements with templates
 		var nodes:Array<Xml> = MacroUtils.findNodesWithAttr(viewHtml, TEMPLATE_ATTR);
-		var templateCounter:UInt = 0;
 
 		for(node in nodes){
 			if(MacroUtils.nodeChildren(node).length != 1)
@@ -124,7 +125,7 @@ class ComponentBuilder {
 
 			node.removeChild(comment);
 
-			var templateFieldName:String = TEMPLATE_VARIABLE + templateCounter;
+			var templateFieldName:String = TEMPLATE_VARIABLE + globalTemplateCounter;
 
 			node.set(TEMPLATE_ID_ATTR, templateFieldName);
 
@@ -154,7 +155,7 @@ class ComponentBuilder {
 				default: {}
 			}
 
-			templateCounter++;
+			globalTemplateCounter++;
 		}
 
 		// if there is no constructor, create an empty one

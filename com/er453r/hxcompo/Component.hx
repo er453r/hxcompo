@@ -11,6 +11,10 @@ class Component {
 #if js
 	public var view(default, null):Element;
 
+	static var static_init = {
+		[].iterator(); // hack to enable iterator on array after compilation
+	};
+
 	private function buildFromString(html:String):Void{
 		var template:TemplateElement = cast Browser.document.createElement("template");
 
