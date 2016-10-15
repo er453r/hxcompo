@@ -12,6 +12,9 @@ class ComponentBuilder {
 	private static inline var CONTENTS:String = "contents";
 	private static inline var ID_ATTR:String = "data-id";
 	private static inline var TEMPLATE_ATTR:String = "data-template";
+	private static inline var TEMPLATE_ID_ATTR:String = "data-template-id";
+	private static inline var TEMPLATE_VARIABLE:String = "componentTemplate";
+	private static inline var SETTER_PREFIX:String = "set_";
 	private static inline var NEW:String = "new";
 	private static inline var MAIN:String = "main";
 	private static inline var CSS_FILE:String = "css";
@@ -105,6 +108,7 @@ class ComponentBuilder {
 
 		// create templates for elements with templates
 		var nodes:Array<Xml> = MacroUtils.findNodesWithAttr(viewHtml, TEMPLATE_ATTR);
+		var templateCounter:UInt = 0;
 
 		for(node in nodes){
 			if(MacroUtils.nodeChildren(node).length != 1)
@@ -119,6 +123,38 @@ class ComponentBuilder {
 			var template:String = comment.nodeValue;
 
 			node.removeChild(comment);
+
+			var templateFieldName:String = TEMPLATE_VARIABLE + templateCounter;
+
+			node.set(TEMPLATE_ID_ATTR, templateFieldName);
+
+			fields.push({
+				name: templateFieldName,
+				doc: null,
+				access: [Access.APrivate],
+				kind: FieldType.FVar(macro:haxe.Template, macro {new haxe.Template('${template}');}),
+				pos: Context.currentPos()
+			});
+
+			if(MacroUtils.getField(variable, fields) == null)
+				Context.error('Class ${className} does not contain variable "${variable}" required for a template', Context.currentPos());
+
+			if(MacroUtils.getField(SETTER_PREFIX + variable, fields) == null)
+				Context.error('Class ${className} does not contain setter for variable "${variable}" required for a template', Context.currentPos());
+
+			// inject code to setter
+			switch(MacroUtils.getField(SETTER_PREFIX + variable, fields).kind){
+				case FFun(func):{
+					func.expr = macro {
+						find('${node.nodeName}[${TEMPLATE_ID_ATTR}=${templateFieldName}]').innerHTML = $i{templateFieldName}.execute({$variable: $i{func.args[0].name}});
+						${func.expr};
+					};
+				}
+
+				default: {}
+			}
+
+			templateCounter++;
 		}
 
 		// if there is no constructor, create an empty one
