@@ -182,7 +182,7 @@ class ComponentBuilder {
 			switch(MacroUtils.getField(SETTER_PREFIX + variable, fields).kind){
 				case FFun(func):{
 					func.expr = macro {
-						find('${node.nodeName}[${TEMPLATE_ID_ATTR}=${templateFieldName}]').innerHTML = $i{templateFieldName}.execute({$variable: $i{func.args[0].name}});
+						find('${node.nodeName}[${TEMPLATE_ID_ATTR}=${templateFieldName}]').innerHTML = $i{templateFieldName}.execute({$i{func.args[0].name}});
 						${func.expr};
 					};
 				}
