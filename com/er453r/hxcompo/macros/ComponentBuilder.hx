@@ -10,7 +10,8 @@ import sys.io.FileOutput;
 
 class ComponentBuilder {
 	private static inline var CONTENTS:String = "contents";
-	private static inline var ID_ATTR:String = "data-id";
+	private static inline var ID_ATTR:String = "id";
+	private static inline var DATA_ID_ATTR:String = "data-id";
 	private static inline var TEMPLATE_ATTR:String = "data-template";
 	private static inline var TEMPLATE_ID_ATTR:String = "data-template-id";
 	private static inline var TEMPLATE_VARIABLE:String = "component-template-";
@@ -103,7 +104,31 @@ class ComponentBuilder {
 
 			// if not root, then lookm if root assing view
 			if(node.parent.parent != null)
-				exprs.push(macro this.$id = cast find('*[${ID_ATTR}=${id}]'));
+				exprs.push(macro this.$id = cast find('#${id}'));
+			else
+				exprs.push(macro this.$id = cast this.view);
+		}
+
+		// create fields for elements with data-id
+		var nodes:Array<Xml> = MacroUtils.findNodesWithAttr(viewHtml, DATA_ID_ATTR);
+
+		for(node in nodes){
+			var id:String = node.get(DATA_ID_ATTR);
+			var tagName:String = node.nodeName;
+
+			var type = MacroUtils.asComplexType(MacroUtils.tagNameToClassName(tagName));
+
+			fields.push({
+				name: id,
+				doc: null,
+				access: [Access.APrivate],
+				kind: FieldType.FVar(macro:$type, macro $v{null}),
+				pos: Context.currentPos()
+			});
+
+			// if not root, then lookm if root assing view
+			if(node.parent.parent != null)
+				exprs.push(macro this.$id = cast find('*[${DATA_ID_ATTR}=${id}]'));
 			else
 				exprs.push(macro this.$id = cast this.view);
 		}
