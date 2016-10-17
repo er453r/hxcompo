@@ -29,12 +29,12 @@ class Component {
 		return viewElement.querySelector(selector);
 	}
 
-	private function appendTo(selector:String, element:Element):Void{
-		find(selector).appendChild(element);
-	}
+	private function append(?component:Component, ?element:Element):Void{
+		if(component != null)
+			find(CONTENT_SELECTOR).appendChild(component.viewElement);
 
-	private function append(component:Component):Void{
-		find(CONTENT_SELECTOR).appendChild(component.viewElement);
+		if(element != null)
+			find(CONTENT_SELECTOR).appendChild(element);
 	}
 
 	private function remove(component:Component):Void{
