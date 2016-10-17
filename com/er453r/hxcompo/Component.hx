@@ -41,6 +41,13 @@ class Component {
 		component.view.remove();
 	}
 
+	private function clear():Void{
+		var node:Element = find(CONTENT_SELECTOR);
+
+		while(node.firstChild != null)
+			node.removeChild(node.firstChild);
+	}
+
 	private function dispatch<T>(type:String, data:T):Void{
 		var event:CustomEvent = new CustomEvent(type);
 
