@@ -3,6 +3,8 @@ package com.er453r.hxcompo;
 #if js
 import js.html.Element;
 import js.Browser;
+import js.html.CustomEvent;
+import js.html.Event;
 #end
 
 @:autoBuild(com.er453r.hxcompo.macros.ComponentBuilder.build())
@@ -31,12 +33,24 @@ class Component {
 		find(selector).appendChild(element);
 	}
 
-	public function append(component:Component):Void{
+	private function append(component:Component):Void{
 		find(CONTENT_SELECTOR).appendChild(component.view);
 	}
 
-	public function remove(component:Component):Void{
+	private function remove(component:Component):Void{
 		component.view.remove();
+	}
+
+	private function dispatch(type:String, data:Dynamic):Void{
+		var event:CustomEvent = new CustomEvent(type);
+
+		event.initCustomEvent(type, true, true, data);
+
+		view.dispatchEvent(event);
+	}
+
+	private function listen(type:String, listener:CustomEvent->Void):Void{
+		view.addEventListener(type, listener);
 	}
 #end
 }
