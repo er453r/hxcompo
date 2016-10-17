@@ -15,6 +15,7 @@ class ComponentBuilder {
 	private static inline var TEMPLATE_ATTR:String = "data-template";
 	private static inline var TEMPLATE_ID_ATTR:String = "data-template-id";
 	private static inline var TEMPLATE_VARIABLE:String = "component-template-";
+	private static inline var VIEW_VARIABLE:String = "view";
 	private static inline var SETTER_PREFIX:String = "set_";
 	private static inline var NEW:String = "new";
 	private static inline var MAIN:String = "main";
@@ -233,11 +234,22 @@ class ComponentBuilder {
 				pos: Context.currentPos()});
 		}
 
+		// create a variable for view
+		var type = MacroUtils.asComplexType(MacroUtils.tagNameToClassName(viewHtml.nodeName));
+
+		fields.push({
+			name: VIEW_VARIABLE,
+			access: [Access.APublic],
+			kind: FieldType.FVar(macro:$type, macro $v{null}),
+			pos: Context.currentPos()
+		});
+
 		// inject initialization code to the constructor
 		switch(MacroUtils.getField(NEW, fields).kind){
 			case FFun(func):{
 				func.expr = macro {
 					buildFromString(this.contents);
+					view = cast viewElement;
 					$b{exprs};
 					${func.expr};
 				};
@@ -249,7 +261,6 @@ class ComponentBuilder {
 		// create a variable for html contents
 		fields.push({
 			name: CONTENTS,
-			doc: null,
 			access: [Access.APrivate],
 			kind: FieldType.FVar(macro:String, macro $v{viewHtml.toString()}),
 			pos: Context.currentPos()

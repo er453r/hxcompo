@@ -11,7 +11,7 @@ import js.html.Event;
 class Component {
 	private static inline var CONTENT_SELECTOR:String = "*[data-content]";
 #if js
-	public var view(default, null):Element;
+	private var viewElement:Element;
 
 	private static var static_init = {
 		[].iterator(); // hack to enable iterator on array after compilation
@@ -22,11 +22,11 @@ class Component {
 
 		template.innerHTML = html;
 
-		view = cast template.content.firstChild;
+		viewElement = cast template.content.firstChild;
 	}
 
 	private function find(selector:String):Element{
-		return view.querySelector(selector);
+		return viewElement.querySelector(selector);
 	}
 
 	private function appendTo(selector:String, element:Element):Void{
@@ -34,11 +34,11 @@ class Component {
 	}
 
 	private function append(component:Component):Void{
-		find(CONTENT_SELECTOR).appendChild(component.view);
+		find(CONTENT_SELECTOR).appendChild(component.viewElement);
 	}
 
 	private function remove(component:Component):Void{
-		component.view.remove();
+		component.viewElement.remove();
 	}
 
 	private function clear():Void{
@@ -53,11 +53,11 @@ class Component {
 
 		event.initCustomEvent(type, true, true, data);
 
-		view.dispatchEvent(event);
+		viewElement.dispatchEvent(event);
 	}
 
 	private function listen<T>(type:String, listener:T->Void):Void{
-		view.addEventListener(type, function(event:CustomEvent){
+		viewElement.addEventListener(type, function(event:CustomEvent){
 			listener(event.detail);
 		});
 	}
