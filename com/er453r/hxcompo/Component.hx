@@ -41,7 +41,7 @@ class Component {
 		component.view.remove();
 	}
 
-	private function dispatch(type:String, data:Dynamic):Void{
+	private function dispatch<T>(type:String, data:T):Void{
 		var event:CustomEvent = new CustomEvent(type);
 
 		event.initCustomEvent(type, true, true, data);
@@ -49,8 +49,10 @@ class Component {
 		view.dispatchEvent(event);
 	}
 
-	private function listen(type:String, listener:CustomEvent->Void):Void{
-		view.addEventListener(type, listener);
+	private function listen<T>(type:String, listener:T->Void):Void{
+		view.addEventListener(type, function(event:CustomEvent){
+			listener(event.detail);
+		});
 	}
 #end
 }
