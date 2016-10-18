@@ -48,7 +48,7 @@ class Component {
 			node.removeChild(node.firstChild);
 	}
 
-	private function dispatch<T>(type:String, data:T):Void{
+	private function dispatch<T>(type:String, ?data:T):Void{
 		var event:CustomEvent = new CustomEvent(type);
 
 		event.initCustomEvent(type, true, true, data);
@@ -56,10 +56,18 @@ class Component {
 		viewElement.dispatchEvent(event);
 	}
 
-	private function listen<T>(type:String, listener:T->Void):Void{
-		viewElement.addEventListener(type, function(event:CustomEvent){
-			listener(event.detail);
-		});
+	private function listen<T>(type:String, ?listener:T->Void, ?listenerVoid:Void->Void):Void{
+		if(listener != null){
+			viewElement.addEventListener(type, function(event:CustomEvent){
+				listener(event.detail);
+			});
+		}
+
+		if(listenerVoid != null){
+			viewElement.addEventListener(type, function(event:CustomEvent){
+				listenerVoid();
+			});
+		}
 	}
 #end
 }
