@@ -56,7 +56,10 @@ class Component {
 		viewElement.dispatchEvent(event);
 	}
 
-	private function listen<T>(type:String, ?listener:T->Void, ?listenerVoid:Void->Void):Void{
+	private function listen<T>(type:String, ?mouseListener:js.html.MouseEvent->Void, ?listener:T->Void, ?listenerVoid:Void->Void):Void{
+		if(mouseListener != null)
+			viewElement.addEventListener(type, mouseListener);
+
 		if(listener != null){
 			viewElement.addEventListener(type, function(event:CustomEvent){
 				listener(event.detail);
