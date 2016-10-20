@@ -1,19 +1,19 @@
 package com.er453r.hxcompo;
 
-#if js
+import js.html.Element;
+import js.html.MouseEvent;
+import js.html.Event;
 import js.html.Element;
 import js.Browser;
 import js.html.CustomEvent;
-import js.html.Event;
-#end
 
 @:autoBuild(com.er453r.hxcompo.macros.ComponentBuilder.build())
 class Component {
 	private static inline var CONTENT_SELECTOR:String = "*[data-content]";
-#if js
+
 	private var viewElement:Element;
 
-	private static var static_init = {
+	static function __init__(){
 		[].iterator(); // hack to enable iterator on array after compilation
 	};
 
@@ -56,7 +56,36 @@ class Component {
 		viewElement.dispatchEvent(event);
 	}
 
-	private function listen<T>(type:String, ?mouseListener:js.html.MouseEvent->Void, ?listener:T->Void, ?listenerVoid:Void->Void):Void{
+	private function delegate<T>(type:String, selector:String, ?mouseListener:Element->MouseEvent->Void, ?listener:Element->T->Void, ?listenerVoid:Element->Void):Void{
+		viewElement.addEventListener(type, function(event:Event){
+			var element:Element = cast event.target;
+
+			while(element != null){
+				if(element == this.viewElement) // break on self
+					return;
+
+				if(element.matches(selector)){
+					if(mouseListener != null)
+						mouseListener(element, cast event);
+
+					if(listener != null){
+						var customEvent:CustomEvent = cast event;
+
+						listener(element, customEvent.detail);
+					}
+
+					if(listenerVoid != null)
+						listenerVoid(element);
+
+					return;
+				}
+
+				element = element.parentElement;
+			}
+		});
+	}
+
+	private function listen<T>(type:String, ?mouseListener:MouseEvent->Void, ?listener:T->Void, ?listenerVoid:Void->Void):Void{
 		if(mouseListener != null)
 			viewElement.addEventListener(type, mouseListener);
 
@@ -72,5 +101,4 @@ class Component {
 			});
 		}
 	}
-#end
 }
