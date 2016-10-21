@@ -27,6 +27,7 @@ class ComponentBuilder {
 	private static var globalTemplateCounter:UInt = 0;
 
 	public static function build():Array<Field> {
+		var fields:Array<Field> = Context.getBuildFields();
 		var className:String = TypeTools.toString(Context.getLocalType());
 		var simpleName:String = MacroUtils.getClassName();
 		var viewFile:String = MacroUtils.getMeta(VIEW_ANNOTATION);
@@ -44,8 +45,6 @@ class ComponentBuilder {
 			Context.error('Class ${simpleName} does not define its view (or the default one "${simpleName}.htm")', Context.currentPos());
 
 		var viewHtml:Xml = MacroUtils.parseHTML(viewFile);
-
-		var fields:Array<Field> = Context.getBuildFields();
 
 		// check if main class requires a a static main
 		if(TypeTools.toString(Context.getLocalType()) == MacroUtils.getMainClassName()){

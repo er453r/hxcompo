@@ -2,8 +2,8 @@ package com.er453r.hxcompo;
 
 import js.html.Element;
 import js.html.MouseEvent;
+import js.html.WheelEvent;
 import js.html.Event;
-import js.html.Element;
 import js.Browser;
 import js.html.CustomEvent;
 
@@ -85,9 +85,12 @@ class Component {
 		});
 	}
 
-	private function listen<T>(type:String, ?mouseListener:MouseEvent->Void, ?listener:T->Void, ?listenerVoid:Void->Void):Void{
+	private function listen<T>(type:String, ?mouseListener:MouseEvent->Void, ?wheelListener:WheelEvent->Void, ?listener:T->Void, ?listenerVoid:Void->Void):Void{
 		if(mouseListener != null)
 			viewElement.addEventListener(type, mouseListener);
+
+		if(wheelListener != null)
+			viewElement.addEventListener(type, wheelListener);
 
 		if(listener != null){
 			viewElement.addEventListener(type, function(event:CustomEvent){

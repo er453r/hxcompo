@@ -120,6 +120,15 @@ class MacroUtils {
 	}
 
 	static public function getMeta(name:String):String {
+		var meta:MetadataEntry = getMetaEntry(name);
+
+		if(meta != null && meta.params.length > 0)
+				return ExprTools.getValue(meta.params[0]);
+
+		return null;
+	}
+
+	static public function getMetaEntry(name:String):MetadataEntry {
 		var classType:ClassType;
 
 		switch (Context.getLocalType()) {
@@ -128,14 +137,11 @@ class MacroUtils {
 			case _:
 		}
 
-		var value:String;
-
 		for (meta in classType.meta.get())
 			if(meta.name == name)
-			if(meta.params.length > 0)
-				value = ExprTools.getValue(meta.params[0]);
+				return meta;
 
-		return value;
+		return null;
 	}
 
 	static public function asTypePath(s:String, ?params):TypePath {
