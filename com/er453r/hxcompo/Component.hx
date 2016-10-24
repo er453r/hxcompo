@@ -11,7 +11,7 @@ import js.html.CustomEvent;
 class Component {
 	private static inline var CONTENT_SELECTOR:String = "*[data-content]";
 
-	private var viewElement:Element;
+	public var viewElement(default, null):Element;
 
 	static function __init__(){
 		[].iterator(); // hack to enable iterator on array after compilation

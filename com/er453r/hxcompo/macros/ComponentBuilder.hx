@@ -23,11 +23,16 @@ class ComponentBuilder {
 
 	private static inline var VIEW_ANNOTATION:String = ":view";
 	private static inline var STYLE_ANNOTATION:String = ":style";
+	private static inline var ABSTRACT_ANNOTATION:String = ":abstract";
 
 	private static var globalTemplateCounter:UInt = 0;
 
 	public static function build():Array<Field> {
 		var fields:Array<Field> = Context.getBuildFields();
+
+		if(MacroUtils.getMetaEntry(ABSTRACT_ANNOTATION) != null)
+			return fields;
+
 		var className:String = TypeTools.toString(Context.getLocalType());
 		var simpleName:String = MacroUtils.getClassName();
 		var viewFile:String = MacroUtils.getMeta(VIEW_ANNOTATION);
