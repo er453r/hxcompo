@@ -30,11 +30,8 @@ class Component {
 	}
 
 	private function append(?component:Component, ?element:Element):Void{
-		if(component != null){
+		if(component != null)
 			find(CONTENT_SELECTOR).appendChild(component.viewElement);
-
-			component.onAddedToParent(this);
-		}
 
 		if(element != null)
 			find(CONTENT_SELECTOR).appendChild(element);
@@ -42,10 +39,6 @@ class Component {
 
 	private function remove(component:Component):Void{
 		component.viewElement.remove();
-	}
-
-	private function onAddedToParent(parent:Component):Void{
-
 	}
 
 	private function clear():Void{
