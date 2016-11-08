@@ -1,5 +1,6 @@
 package com.er453r.hxcompo;
 
+import js.html.TouchEvent;
 import js.html.Element;
 import js.html.MouseEvent;
 import js.html.WheelEvent;
@@ -85,9 +86,12 @@ class Component {
 		});
 	}
 
-	private function listen<T>(type:String, ?mouseListener:MouseEvent->Void, ?wheelListener:WheelEvent->Void, ?listener:T->Void, ?listenerVoid:Void->Void):Void{
+	private function listen<T>(type:String, ?mouseListener:MouseEvent->Void, ?touchListener:TouchEvent->Void, ?wheelListener:WheelEvent->Void, ?listener:T->Void, ?listenerVoid:Void->Void):Void{
 		if(mouseListener != null)
 			viewElement.addEventListener(type, mouseListener);
+
+		if(touchListener != null)
+			viewElement.addEventListener(type, touchListener);
 
 		if(wheelListener != null)
 			viewElement.addEventListener(type, wheelListener);
