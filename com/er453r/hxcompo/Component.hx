@@ -38,8 +38,8 @@ class Component {
 			find(CONTENT_SELECTOR).appendChild(element);
 	}
 
-	private function remove(component:Component):Void{
-		component.viewElement.remove();
+	private function remove():Void{
+		this.viewElement.remove();
 	}
 
 	private function clear():Void{
