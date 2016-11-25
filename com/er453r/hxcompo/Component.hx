@@ -45,6 +45,9 @@ class Component {
 	private function clear():Void{
 		var node:Element = find(CONTENT_SELECTOR);
 
+		if(node == null)
+			return;
+
 		while(node.firstChild != null)
 			node.removeChild(node.firstChild);
 	}
