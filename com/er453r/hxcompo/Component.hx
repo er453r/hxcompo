@@ -1,5 +1,6 @@
 package com.er453r.hxcompo;
 
+import js.html.Element;
 import js.html.TouchEvent;
 import js.html.Element;
 import js.html.MouseEvent;
@@ -18,7 +19,7 @@ class Component {
 		[].iterator(); // hack to enable iterator on array after compilation
 	};
 
-	private function buildFromString(html:String):Void{
+	private function buildFromString(html:String){
 		var template:TemplateElement = cast Browser.document.createElement("template");
 
 		template.innerHTML = html;
@@ -30,7 +31,7 @@ class Component {
 		return viewElement.querySelector(selector);
 	}
 
-	private function append(?component:Component, ?element:Element):Void{
+	private function append(?component:Component, ?element:Element){
 		if(component != null)
 			find(CONTENT_SELECTOR).appendChild(component.viewElement);
 
@@ -38,11 +39,11 @@ class Component {
 			find(CONTENT_SELECTOR).appendChild(element);
 	}
 
-	private function remove():Void{
+	private function remove(){
 		this.viewElement.remove();
 	}
 
-	private function clear():Void{
+	private function clear(){
 		var node:Element = find(CONTENT_SELECTOR);
 
 		if(node == null)
@@ -52,7 +53,7 @@ class Component {
 			node.removeChild(node.firstChild);
 	}
 
-	private function dispatch<T>(type:String, ?data:T):Void{
+	private function dispatch<T>(type:String, ?data:T){
 		var event:CustomEvent = new CustomEvent(type);
 
 		event.initCustomEvent(type, true, true, data);
@@ -60,54 +61,64 @@ class Component {
 		viewElement.dispatchEvent(event);
 	}
 
-	private function delegate<T>(type:String, selector:String, ?mouseListener:Element->MouseEvent->Void, ?listener:Element->T->Void, ?listenerVoid:Element->Void):Void{
-		viewElement.addEventListener(type, function(event:Event){
-			var element:Element = cast event.target;
+	private function on<T>(selector:String, ?type:String,
+						   ?onMouse:MouseEvent->Void, ?onTouch:TouchEvent->Void, ?onWheel:WheelEvent->Void,
+						   ?onMouseElement:Element->MouseEvent->Void, ?onTouchElement:Element->TouchEvent->Void, ?onWheelElement:Element->WheelEvent->Void,
+						   ?onCustomElement:Element->T->Void, ?onVoidElement:Element->Void,
+						   ?onCustom:T->Void, ?onVoid:Void->Void){
+		if(type == null){ // attach listener to self
+			type = selector;
 
-			while(element != null){
-				if(element == this.viewElement) // break on self
-					return;
+			if(onMouse != null)
+				viewElement.addEventListener(type, onMouse);
 
-				if(element.matches(selector)){
-					if(mouseListener != null)
-						mouseListener(element, cast event);
+			if(onTouch != null)
+				viewElement.addEventListener(type, onTouch);
 
-					if(listener != null){
-						var customEvent:CustomEvent = cast event;
+			if(onWheel != null)
+				viewElement.addEventListener(type, onWheel);
 
-						listener(element, customEvent.detail);
+			if(onVoid != null)
+				viewElement.addEventListener(type, onVoid);
+
+			if(onCustom != null){
+				viewElement.addEventListener(type, function(event:CustomEvent){
+					onCustom(event.detail);
+				});
+			}
+		}
+		else{ // delegate
+			viewElement.addEventListener(type, function(event:Event){
+				var element:Element = cast event.target;
+
+				while(element != null){
+					if(element.matches(selector)){
+						if(onMouseElement != null)
+							onMouseElement(element, cast event);
+
+						if(onTouchElement != null)
+							onTouchElement(element, cast event);
+
+						if(onWheelElement != null)
+							onWheelElement(element, cast event);
+
+						if(onVoidElement != null)
+							onVoidElement(element);
+
+						if(onCustomElement != null){
+							var customEvent:CustomEvent = cast event;
+
+							onCustomElement(element, customEvent.detail);
+						}
+
+						return;
 					}
 
-					if(listenerVoid != null)
-						listenerVoid(element);
+					if(element == this.viewElement) // break on self
+						return;
 
-					return;
+					element = element.parentElement;
 				}
-
-				element = element.parentElement;
-			}
-		});
-	}
-
-	private function listen<T>(type:String, ?mouseListener:MouseEvent->Void, ?touchListener:TouchEvent->Void, ?wheelListener:WheelEvent->Void, ?listener:T->Void, ?listenerVoid:Void->Void):Void{
-		if(mouseListener != null)
-			viewElement.addEventListener(type, mouseListener);
-
-		if(touchListener != null)
-			viewElement.addEventListener(type, touchListener);
-
-		if(wheelListener != null)
-			viewElement.addEventListener(type, wheelListener);
-
-		if(listener != null){
-			viewElement.addEventListener(type, function(event:CustomEvent){
-				listener(event.detail);
-			});
-		}
-
-		if(listenerVoid != null){
-			viewElement.addEventListener(type, function(event:CustomEvent){
-				listenerVoid();
 			});
 		}
 	}
