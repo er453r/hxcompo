@@ -1,13 +1,11 @@
 package com.er453r.hxcompo;
 
-import js.html.Element;
+import js.Browser;
+import js.html.Event;
 import js.html.Element;
 import js.html.TouchEvent;
-import js.html.Element;
 import js.html.MouseEvent;
 import js.html.WheelEvent;
-import js.html.Event;
-import js.Browser;
 import js.html.CustomEvent;
 
 @:autoBuild(com.er453r.hxcompo.macros.ComponentBuilder.build())
