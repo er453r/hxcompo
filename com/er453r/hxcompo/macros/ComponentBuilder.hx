@@ -53,23 +53,38 @@ class ComponentBuilder {
 
 		// check if main class requires a a static main
 		if(TypeTools.toString(Context.getLocalType()) == MacroUtils.getMainClassName()){
+			// if there is no static constructor, create an empty one
+			if(MacroUtils.getField(MAIN, fields) == null){
+				fields.push({
+					name: MAIN,
+					doc: null,
+					access: [Access.APublic, Access.AStatic],
+					kind: FieldType.FFun({
+						params : [],
+						args : [],
+						expr: macro {},
+						ret : macro : Void
+					}),
+					pos: Context.currentPos()
+				});
+			}
+
 			var type = MacroUtils.asTypePath(MacroUtils.getMainClassName());
 
-			fields.push({
-				name: MAIN,
-				doc: null,
-				access: [Access.APublic, Access.AStatic],
-				kind: FieldType.FFun({
-					params : [],
-					args : [],
-					expr: macro {
+			// inject initialization code to the static constructor
+			switch(MacroUtils.getField(MAIN, fields).kind){
+				case FFun(func):{
+					func.expr = macro {
+						${func.expr};
+
 						js.Browser.document.addEventListener("DOMContentLoaded", function(event){
 							js.Browser.document.body.appendChild(new $type().view);
 						});
-					},
-					ret : macro : Void
-				}),
-				pos: Context.currentPos()});
+					}
+				}
+
+				default: {}
+			}
 
 			if(styleResult != null && FileSystem.exists(styleResult))
 				FileSystem.deleteFile(styleResult);
