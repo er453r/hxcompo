@@ -1,6 +1,7 @@
 package com.er453r.hxcompo;
 
 import js.html.Element;
+import js.html.Element;
 import js.html.TouchEvent;
 import js.html.Element;
 import js.html.MouseEvent;
@@ -61,28 +62,31 @@ class Component {
 		viewElement.dispatchEvent(event);
 	}
 
-	private function on<T>(selector:String, ?type:String,
+	private function on<T>(?element:Element, ?selector:String, ?type:String,
 						   ?onMouse:MouseEvent->Void, ?onTouch:TouchEvent->Void, ?onWheel:WheelEvent->Void,
 						   ?onMouseElement:Element->MouseEvent->Void, ?onTouchElement:Element->TouchEvent->Void, ?onWheelElement:Element->WheelEvent->Void,
 						   ?onCustomElement:Element->T->Void, ?onVoidElement:Element->Void,
 						   ?onCustom:T->Void, ?onVoid:Void->Void){
-		if(type == null){ // attach listener to self
+		if(type == null){ // attach listener to or element
 			type = selector;
 
+			if(element == null)
+				element = viewElement;
+
 			if(onMouse != null)
-				viewElement.addEventListener(type, onMouse);
+				element.addEventListener(type, onMouse);
 
 			if(onTouch != null)
-				viewElement.addEventListener(type, onTouch);
+				element.addEventListener(type, onTouch);
 
 			if(onWheel != null)
-				viewElement.addEventListener(type, onWheel);
+				element.addEventListener(type, onWheel);
 
 			if(onVoid != null)
-				viewElement.addEventListener(type, onVoid);
+				element.addEventListener(type, onVoid);
 
 			if(onCustom != null){
-				viewElement.addEventListener(type, function(event:CustomEvent){
+				element.addEventListener(type, function(event:CustomEvent){
 					onCustom(event.detail);
 				});
 			}
