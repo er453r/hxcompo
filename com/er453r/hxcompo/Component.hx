@@ -42,8 +42,9 @@ class Component {
 		this.viewElement.remove();
 	}
 
-	private function clear(){
-		var node:Element = find(CONTENT_SELECTOR);
+	private function clear(?node:Element){
+		if(node == null)
+			node = find(CONTENT_SELECTOR);
 
 		if(node == null)
 			return;
