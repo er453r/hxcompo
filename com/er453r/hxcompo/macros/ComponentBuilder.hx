@@ -114,13 +114,14 @@ class ComponentBuilder {
 
 			var type = MacroUtils.asComplexType(MacroUtils.tagNameToClassName(tagName));
 
-			fields.push({
-				name: id,
-				doc: null,
-				access: [Access.APrivate],
-				kind: FieldType.FVar(macro:$type, macro $v{null}),
-				pos: Context.currentPos()
-			});
+			if(TypeTools.findField(MacroUtils.getClassType(), id) == null) // field can be created in code
+				fields.push({
+					name: id,
+					doc: null,
+					access: [Access.APrivate],
+					kind: FieldType.FVar(macro:$type, macro $v{null}),
+					pos: Context.currentPos()
+				});
 
 			// if not root, then lookm if root assing view
 			if(node.parent.parent != null)
@@ -138,13 +139,14 @@ class ComponentBuilder {
 
 			var type = MacroUtils.asComplexType(MacroUtils.tagNameToClassName(tagName));
 
-			fields.push({
-				name: id,
-				doc: null,
-				access: [Access.APrivate],
-				kind: FieldType.FVar(macro:$type, macro $v{null}),
-				pos: Context.currentPos()
-			});
+			if(TypeTools.findField(MacroUtils.getClassType(), id) == null) // field can be created in code
+				fields.push({
+					name: id,
+					doc: null,
+					access: [Access.APrivate],
+					kind: FieldType.FVar(macro:$type, macro $v{null}),
+					pos: Context.currentPos()
+				});
 
 			// if not root, then lookm if root assing view
 			if(node.parent.parent != null)

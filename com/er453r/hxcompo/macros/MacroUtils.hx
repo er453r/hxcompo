@@ -12,6 +12,17 @@ class MacroUtils {
 		return  Context.getLocalClass().toString().split(".").pop();
 	}
 
+	static public function getClassType():ClassType{
+		var classType:ClassType;
+		switch (Context.getLocalType()) {
+			case TInst(r, _):
+				classType = r.get();
+			case _:
+		}
+
+		return classType;
+	}
+
 	static public function getMainClassName():String{
 		var mainClass:String;
 
